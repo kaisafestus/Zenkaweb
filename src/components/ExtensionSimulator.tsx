@@ -3,25 +3,34 @@ import { CalendarClock, Check } from 'lucide-react';
 import {
   EXTENSION_OPTIONS,
   ExtensionOption,
+  LOAN_TIERS,
   addDaysFormatted,
+  calculateExtensionFee,
   formatKsh,
 } from '../data/loanPackages';
 
 interface ExtensionSimulatorProps {
-  onExtendCheckout: (balance: number, option: ExtensionOption, extensionFee: number) => void;
+  onExtendCheckout: (
+    balance: number,
+    option: ExtensionOption,
+    extensionFee: number
+  ) => void;
 }
 
-const BALANCE_PRESETS = [3168, 10000, 25000, 50000];
+const EXTENSION_TIER_PRESETS = [10000, 21000, 35000, 50000, 70000];
 
-export function ExtensionSimulator({ onExtendCheckout }: ExtensionSimulatorProps) {
-  const [currentBalance, setCurrentBalance] = useState<number>(3168);
+export function ExtensionSimulator({
+  onExtendCheckout,
+}: ExtensionSimulatorProps) {
+  const [currentBalance, setCurrentBalance] = useState<number>(21000);
   const [selectedDays, setSelectedDays] = useState<7 | 14 | 30>(7);
 
   const selectedOption =
     EXTENSION_OPTIONS.find((opt) => opt.days === selectedDays) ??
     EXTENSION_OPTIONS[0];
 
-  const extensionFee = Math.round((currentBalance * selectedOption.feePercent) / 100);
+  const extensionFee =
+    calculateExtensionFee(currentBalance, selectedOption.days) ?? 0;
   const adjustedTotal = currentBalance + extensionFee;
   const newDueDate = addDaysFormatted(selectedOption.days);
 
@@ -30,7 +39,6 @@ export function ExtensionSimulator({ onExtendCheckout }: ExtensionSimulatorProps
       id="extensions"
       className="bg-[#141212] text-white border-b border-white/10 py-16 lg:py-20 relative overflow-hidden"
     >
-      {/* Subtle warm bronze backdrop lighting matching Zenka campaign mood */}
       <div
         aria-hidden="true"
         className="absolute inset-0 pointer-events-none"
@@ -65,7 +73,7 @@ export function ExtensionSimulator({ onExtendCheckout }: ExtensionSimulatorProps
               Need extra breathing room? Extend your loan with low flat fees.
             </h2>
             <p className="text-sm sm:text-base text-white/75 leading-relaxed mb-6">
-              Cash flow timing changes. Instead of harsh default penalties, Zenka lets you shift your repayment window by 7, 14, or 30 days in seconds—and settles the extension fee cleanly via M-Pesa.
+              Cash flow timing changes. Shift your repayment window by 7, 14, or 30 days and authorize the extension fee directly from your phone via M-Pesa STK Push.
             </p>
 
             <dl className="grid grid-cols-2 gap-4 pt-6 border-t border-white/15 text-sm">
@@ -78,13 +86,13 @@ export function ExtensionSimulator({ onExtendCheckout }: ExtensionSimulatorProps
               <div>
                 <dt className="text-white/60 text-xs">Settlement Flow</dt>
                 <dd className="font-semibold text-[#FFD200] mt-1">
-                  Instant M-Pesa confirmation
+                  Live M-Pesa STK Push
                 </dd>
               </div>
             </dl>
           </div>
 
-          {/* Right Interactive Extension Widget (Inspired by Screenshot 3) */}
+          {/* Right Interactive Extension Widget */}
           <div className="lg:col-span-7 bg-white text-[#1C1424] rounded-2xl p-6 sm:p-8 border border-[#E5E0EC]">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#E5E0EC]">
               <div>
@@ -92,7 +100,7 @@ export function ExtensionSimulator({ onExtendCheckout }: ExtensionSimulatorProps
                   Extend your loan!
                 </h3>
                 <p className="text-xs text-[#5C5268] mt-1">
-                  Select your current balance and preferred repayment window.
+                  Select your active loan tier and preferred repayment window.
                 </p>
               </div>
               <div className="inline-flex items-center gap-2 text-xs font-medium text-[#521878]">
@@ -101,38 +109,31 @@ export function ExtensionSimulator({ onExtendCheckout }: ExtensionSimulatorProps
               </div>
             </div>
 
-            {/* Balance Input & Quick Presets */}
+            {/* Active Loan Tier Select */}
             <div className="pt-5 pb-6">
               <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                 <label
-                  htmlFor="extension-balance-input"
+                  htmlFor="extension-balance-select"
                   className="text-xs font-semibold text-[#5C5268] uppercase tracking-wider"
                 >
-                  Your current loan
+                  Your active loan tier
                 </label>
-                <div className="flex items-center border border-[#E5E0EC] rounded-lg px-3 py-1.5 bg-[#FAF9FC] focus-within:border-[#521878]">
-                  <span className="text-xs font-semibold text-[#5C5268] mr-1.5">
-                    KSh
-                  </span>
-                  <input
-                    id="extension-balance-input"
-                    type="number"
-                    min={500}
-                    max={200000}
-                    value={currentBalance}
-                    onChange={(e) => {
-                      const val = Number(e.target.value);
-                      if (!Number.isNaN(val)) {
-                        setCurrentBalance(Math.min(200000, Math.max(500, val)));
-                      }
-                    }}
-                    className="w-28 text-right font-display text-xl font-bold text-[#1C1424] bg-transparent outline-none tabular-nums"
-                  />
-                </div>
+                <select
+                  id="extension-balance-select"
+                  value={currentBalance}
+                  onChange={(e) => setCurrentBalance(Number(e.target.value))}
+                  className="font-display text-xl font-bold text-[#1C1424] bg-[#FAF9FC] border border-[#E5E0EC] rounded-lg px-3 py-1.5 tabular-nums outline-none focus:border-[#521878] cursor-pointer"
+                >
+                  {LOAN_TIERS.map((tier) => (
+                    <option key={tier.principal} value={tier.principal}>
+                      {formatKsh(tier.principal)}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                {BALANCE_PRESETS.map((preset) => (
+                {EXTENSION_TIER_PRESETS.map((preset) => (
                   <button
                     key={preset}
                     type="button"
@@ -143,13 +144,13 @@ export function ExtensionSimulator({ onExtendCheckout }: ExtensionSimulatorProps
                         : 'bg-[#FAF9FC] border-[#E5E0EC] text-[#5C5268] hover:text-[#1C1424]'
                     }`}
                   >
-                    {formatKsh(preset, preset === 3168)}
+                    {formatKsh(preset)}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* 7 / 14 / 30 Day Tiles matching Screenshot 3 */}
+            {/* 7 / 14 / 30 Day Tiles */}
             <div>
               <p className="text-xs font-semibold text-[#5C5268] uppercase tracking-wider mb-3">
                 Pick your repayment time:
@@ -157,9 +158,8 @@ export function ExtensionSimulator({ onExtendCheckout }: ExtensionSimulatorProps
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {EXTENSION_OPTIONS.map((option) => {
                   const isSelected = option.days === selectedDays;
-                  const optionFee = Math.round(
-                    (currentBalance * option.feePercent) / 100
-                  );
+                  const optionFee =
+                    calculateExtensionFee(currentBalance, option.days) ?? 0;
 
                   return (
                     <button

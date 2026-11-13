@@ -13,32 +13,28 @@ import {
   ExtensionOption,
   LoanPackage,
   LoanTermDays,
+  LoanTier,
   calculateLoanBreakdown,
 } from './data/loanPackages';
 
 export default function App() {
-  const [amount, setAmount] = useState<number>(20000);
+  const [amount, setAmount] = useState<number>(21000);
   const [termDays, setTermDays] = useState<LoanTermDays>(61);
-  const [isLoyalMember, setIsLoyalMember] = useState<boolean>(false);
   const [checkoutIntent, setCheckoutIntent] = useState<CheckoutIntent | null>(
     null
   );
 
   const calculation = useMemo(
-    () => calculateLoanBreakdown(amount, termDays, isLoyalMember),
-    [amount, termDays, isLoyalMember]
+    () => calculateLoanBreakdown(amount, termDays),
+    [amount, termDays]
   );
 
-  const handleSelectPackage = (pkg: LoanPackage) => {
+  const handleSelectTier = (tier: LoanTier, pkg: LoanPackage) => {
     const preferredTerm =
       pkg.supportedTerms[pkg.supportedTerms.length - 1] ?? 61;
-    setAmount(pkg.examplePrincipal);
+    setAmount(tier.principal);
     setTermDays(preferredTerm);
-    const updatedCalc = calculateLoanBreakdown(
-      pkg.examplePrincipal,
-      preferredTerm,
-      isLoyalMember
-    );
+    const updatedCalc = calculateLoanBreakdown(tier.principal, preferredTerm);
     setCheckoutIntent({ type: 'loan', calculation: updatedCalc });
   };
 
@@ -67,27 +63,31 @@ export default function App() {
     });
   };
 
+  const handleNavApplyClick = () => {
+    const packagesEl = document.getElementById('packages');
+    if (packagesEl) {
+      packagesEl.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div id="top" className="min-h-screen flex flex-col bg-[#FAF9FC] text-[#1C1424]">
-      <TopNav onApplyClick={handleOpenLoanCheckout} />
+      <TopNav onApplyClick={handleNavApplyClick} />
 
       <main className="flex-1">
         <HeroCalculator
           amount={amount}
           termDays={termDays}
-          isLoyalMember={isLoyalMember}
           calculation={calculation}
           onAmountChange={setAmount}
           onTermChange={setTermDays}
-          onLoyalToggle={setIsLoyalMember}
           onApply={handleOpenLoanCheckout}
         />
 
         <LoanPackagesSection
+          selectedAmount={calculation.amount}
           selectedPackageId={calculation.matchedPackage.id}
-          isLoyalMember={isLoyalMember}
-          onLoyalToggle={setIsLoyalMember}
-          onSelectPackage={handleSelectPackage}
+          onSelectTier={handleSelectTier}
         />
 
         <ExtensionSimulator onExtendCheckout={handleExtendCheckout} />

@@ -1,5 +1,6 @@
 import { ArrowRight } from 'lucide-react';
 import {
+  LOAN_TIERS,
   LoanCalculation,
   LoanTermDays,
   formatKsh,
@@ -9,28 +10,29 @@ import { ZenkaLogo } from './ZenkaLogo';
 interface HeroCalculatorProps {
   amount: number;
   termDays: LoanTermDays;
-  isLoyalMember: boolean;
   calculation: LoanCalculation;
   onAmountChange: (amount: number) => void;
   onTermChange: (term: LoanTermDays) => void;
-  onLoyalToggle: (isLoyal: boolean) => void;
   onApply: () => void;
 }
 
 const TERM_OPTIONS: LoanTermDays[] = [14, 30, 61];
-const QUICK_AMOUNTS = [5000, 20000, 50000, 120000, 200000];
+const QUICK_TIERS = [10000, 16000, 21000, 30000, 50000, 70000];
 
 export function HeroCalculator({
   amount,
   termDays,
-  isLoyalMember,
   calculation,
   onAmountChange,
   onTermChange,
-  onLoyalToggle,
   onApply,
 }: HeroCalculatorProps) {
-  const sliderPercent = ((amount - 500) / (200000 - 500)) * 100;
+  const currentTierIndex = Math.max(
+    0,
+    LOAN_TIERS.findIndex((tier) => tier.principal === calculation.amount)
+  );
+  const sliderPercent =
+    (currentTierIndex / Math.max(1, LOAN_TIERS.length - 1)) * 100;
 
   return (
     <section
@@ -41,7 +43,6 @@ export function HeroCalculator({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-stretch">
           {/* Left Column: Zenka Brand Editorial Proposition */}
           <div className="lg:col-span-6 relative rounded-2xl bg-[#141212] text-white overflow-hidden p-8 sm:p-10 flex flex-col justify-between min-h-[460px]">
-            {/* Warm bronze ambient lighting inspired by Zenka campaign visuals */}
             <div
               aria-hidden="true"
               className="absolute inset-0 pointer-events-none"
@@ -50,7 +51,6 @@ export function HeroCalculator({
                   'radial-gradient(circle at 85% 20%, rgba(143, 88, 18, 0.55) 0%, rgba(20, 18, 18, 0.95) 62%)',
               }}
             />
-            {/* Signature Zenka overlapping Purple & Gold geometric circles */}
             <div
               aria-hidden="true"
               className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-[#521878] opacity-95 pointer-events-none"
@@ -73,7 +73,7 @@ export function HeroCalculator({
 
             <div className="relative z-10 max-w-lg">
               <p className="text-xs font-medium tracking-wide text-[#FFD200] mb-4">
-                Zenka Web Portal · Direct to M-Pesa · Kenya
+                Zenka Web Portal · M-Pesa STK Express · Kenya
               </p>
 
               <h1
@@ -84,14 +84,12 @@ export function HeroCalculator({
                 }}
               >
                 Borrow up to{' '}
-                <span className="text-[#FFD200]">KSh 200,000</span> for your
-                next big move.
+                <span className="text-[#FFD200]">KSh 70,000</span> with fees
+                from KSh 99.
               </h1>
 
               <p className="text-base text-white/80 leading-relaxed max-w-md mb-8">
-                Experience the full Zenka loan platform on the web with transparent,
-                favorable facilitation fees starting at 1.8% and flexible repayment
-                schedules up to 61 days.
+                Select your exact loan package, review the transparent flat fee upfront, and verify effortlessly with instant M-Pesa STK Push checkout.
               </p>
 
               <div className="flex flex-wrap items-center gap-4">
@@ -99,18 +97,18 @@ export function HeroCalculator({
                   href="#packages"
                   className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-[#FFD200] hover:bg-[#F2C400] text-[#141212] text-sm font-bold transition-colors duration-150 whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FFD200]"
                 >
-                  Explore Favorable Packages
+                  Explore Loan Packages
                   <ArrowRight className="w-4 h-4" />
                 </a>
               </div>
             </div>
 
             <div className="relative z-10 pt-8 mt-8 border-t border-white/15 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-white/75 pr-28">
-              <span>No paperwork</span>
+              <span>Fixed flat fees</span>
               <span aria-hidden="true">·</span>
-              <span>Transparent fees</span>
+              <span>14–61 day terms</span>
               <span aria-hidden="true">·</span>
-              <span>M-Pesa checkout ready</span>
+              <span>Instant M-Pesa STK Push</span>
             </div>
           </div>
 
@@ -125,81 +123,53 @@ export function HeroCalculator({
                       Total cost calculated loan
                     </h2>
                     <p className="text-xs text-[#5C5268]">
-                      Matched package: <span className="font-semibold text-[#521878]">{calculation.matchedPackage.name}</span>
+                      Matched package:{' '}
+                      <span className="font-semibold text-[#521878]">
+                        {calculation.matchedPackage.name}
+                      </span>
                     </p>
                   </div>
                 </div>
 
-                {/* Interactive Borrower Tier Segmented Control */}
-                <div
-                  role="group"
-                  aria-label="Borrower rate tier"
-                  className="inline-flex items-center p-1 bg-[#FAF9FC] border border-[#E5E0EC] rounded-lg shrink-0"
-                >
-                  <button
-                    type="button"
-                    onClick={() => onLoyalToggle(false)}
-                    className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap cursor-pointer ${
-                      !isLoyalMember
-                        ? 'bg-white text-[#1C1424] shadow-xs'
-                        : 'text-[#5C5268] hover:text-[#1C1424]'
-                    }`}
-                  >
-                    Standard
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onLoyalToggle(true)}
-                    className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap cursor-pointer ${
-                      isLoyalMember
-                        ? 'bg-[#521878] text-white'
-                        : 'text-[#5C5268] hover:text-[#1C1424]'
-                    }`}
-                  >
-                    Loyal Rate
-                  </button>
-                </div>
+                <span className="font-display text-xs font-semibold text-[#521878] tabular-nums">
+                  12 Fixed Tiers
+                </span>
               </div>
 
-              {/* Amount Input & Range Slider */}
+              {/* Tier Slider & Exact Select */}
               <div className="pt-6 pb-5">
                 <div className="flex items-baseline justify-between gap-4 mb-3">
                   <label
-                    htmlFor="loan-amount-input"
+                    htmlFor="loan-tier-select"
                     className="text-sm font-medium text-[#5C5268]"
                   >
                     I would like to borrow
                   </label>
-                  <div className="flex items-center border border-[#E5E0EC] rounded-lg px-3 py-1.5 bg-[#FAF9FC] focus-within:border-[#521878] focus-within:ring-2 focus-within:ring-[#521878]/15">
-                    <span className="text-xs font-semibold text-[#5C5268] mr-1.5">
-                      KSh
-                    </span>
-                    <input
-                      id="loan-amount-input"
-                      type="number"
-                      min={500}
-                      max={200000}
-                      step={500}
-                      value={amount}
-                      onChange={(e) => {
-                        const parsed = Number(e.target.value);
-                        if (!Number.isNaN(parsed)) {
-                          onAmountChange(Math.min(200000, Math.max(500, parsed)));
-                        }
-                      }}
-                      className="w-24 text-right font-display text-xl font-bold text-[#1C1424] bg-transparent outline-none tabular-nums"
-                    />
-                  </div>
+                  <select
+                    id="loan-tier-select"
+                    value={calculation.amount}
+                    onChange={(e) => onAmountChange(Number(e.target.value))}
+                    className="font-display text-xl font-bold text-[#1C1424] bg-[#FAF9FC] border border-[#E5E0EC] rounded-lg px-3 py-1.5 tabular-nums outline-none focus:border-[#521878] focus:ring-2 focus:ring-[#521878]/15 cursor-pointer"
+                  >
+                    {LOAN_TIERS.map((tier) => (
+                      <option key={tier.principal} value={tier.principal}>
+                        {formatKsh(tier.principal)}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <input
                   type="range"
-                  aria-label="Borrow amount slider"
-                  min={500}
-                  max={200000}
-                  step={500}
-                  value={amount}
-                  onChange={(e) => onAmountChange(Number(e.target.value))}
+                  aria-label="Borrow tier slider"
+                  min={0}
+                  max={LOAN_TIERS.length - 1}
+                  step={1}
+                  value={currentTierIndex}
+                  onChange={(e) => {
+                    const selected = LOAN_TIERS[Number(e.target.value)];
+                    if (selected) onAmountChange(selected.principal);
+                  }}
                   className="zenka-slider w-full cursor-pointer"
                   style={{
                     background: `linear-gradient(to right, #521878 0%, #521878 ${sliderPercent}%, #E5E0EC ${sliderPercent}%, #E5E0EC 100%)`,
@@ -207,13 +177,13 @@ export function HeroCalculator({
                 />
 
                 <div className="flex items-center justify-between text-xs text-[#5C5268] tabular-nums mt-2">
-                  <span>KSh 500</span>
-                  <span>KSh 200,000</span>
+                  <span>KSh 10,000</span>
+                  <span>KSh 70,000</span>
                 </div>
 
-                {/* Quick preset buttons */}
+                {/* Quick preset tier buttons */}
                 <div className="flex flex-wrap items-center gap-2 mt-4">
-                  {QUICK_AMOUNTS.map((preset) => (
+                  {QUICK_TIERS.map((preset) => (
                     <button
                       key={preset}
                       type="button"
@@ -266,22 +236,22 @@ export function HeroCalculator({
               {/* Clean Hairline Breakdown Rows */}
               <dl className="py-4 border-t border-[#E5E0EC] space-y-2.5 text-sm">
                 <div className="flex items-center justify-between">
-                  <dt className="text-[#5C5268]">Principal amount</dt>
+                  <dt className="text-[#5C5268]">Loan principal</dt>
                   <dd className="font-semibold text-[#1C1424] tabular-nums">
                     {formatKsh(calculation.amount, true)}
                   </dd>
                 </div>
                 <div className="flex items-center justify-between">
                   <dt className="text-[#5C5268]">
-                    Favorable service fee ({calculation.effectiveFeePercent}%)
+                    Package facilitation fee ({calculation.effectiveFeePercent}%)
                   </dt>
                   <dd className="font-semibold text-[#521878] tabular-nums">
-                    + {formatKsh(calculation.feeAmount, true)}
+                    {formatKsh(calculation.feeAmount, true)}
                   </dd>
                 </div>
                 <div className="flex items-center justify-between pt-2.5 border-t border-[#E5E0EC]">
                   <dt className="font-semibold text-[#1C1424]">
-                    Total repayment
+                    Total repayment at maturity
                   </dt>
                   <dd className="font-display text-2xl font-bold text-[#1C1424] tabular-nums">
                     {formatKsh(calculation.totalRepayment, true)}
@@ -295,7 +265,7 @@ export function HeroCalculator({
               onClick={onApply}
               className="mt-4 w-full py-3.5 px-6 rounded-full bg-[#521878] hover:bg-[#3B0F58] text-white text-sm font-bold tracking-wide transition-colors duration-150 cursor-pointer whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#521878]"
             >
-              APPLY NOW
+              APPLY &amp; PAY FEE ({formatKsh(calculation.feeAmount)}) VIA M-PESA
             </button>
           </div>
         </div>
@@ -303,9 +273,9 @@ export function HeroCalculator({
         {/* Full-Width 4-Column Metric Strip */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
           <div className="bg-white border border-[#E5E0EC] rounded-xl p-5">
-            <p className="text-xs text-[#5C5268] mb-1">Loan Limits</p>
+            <p className="text-xs text-[#5C5268] mb-1">Loan Tiers</p>
             <p className="font-display text-xl font-bold text-[#1C1424] tabular-nums">
-              KSh 500 – 200,000
+              KSh 10,000 – 70,000
             </p>
           </div>
           <div className="bg-white border border-[#E5E0EC] rounded-xl p-5">
@@ -315,15 +285,15 @@ export function HeroCalculator({
             </p>
           </div>
           <div className="bg-white border border-[#E5E0EC] rounded-xl p-5">
-            <p className="text-xs text-[#5C5268] mb-1">Favorable Service Fee</p>
+            <p className="text-xs text-[#5C5268] mb-1">Fixed Package Fees</p>
             <p className="font-display text-xl font-bold text-[#521878] tabular-nums">
-              1.8% – 3.0%
+              KSh 99 – 1,999
             </p>
           </div>
           <div className="bg-white border border-[#E5E0EC] rounded-xl p-5">
-            <p className="text-xs text-[#5C5268] mb-1">Disbursement Channel</p>
+            <p className="text-xs text-[#5C5268] mb-1">Checkout Channel</p>
             <p className="font-display text-xl font-bold text-[#1C1424]">
-              Direct to M-Pesa
+              M-Pesa STK Push
             </p>
           </div>
         </div>
