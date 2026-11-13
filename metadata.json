@@ -1,0 +1,6 @@
+{
+  "name": "Zenka Web — Instant Loans & Favorable Packages",
+  "description": "Web version of the Zenka mobile loan app featuring loans up to KSh 200,000, favorable fee packages, 61-day flexible terms, and M-Pesa checkout readiness.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
